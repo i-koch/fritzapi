@@ -131,6 +131,59 @@ function bulbs() {
   });
 }
 
+
+// display button information
+function buttons() {
+  return fritz.getButtonList().then(function(buttons) {
+    console.log("Buttons: " + buttons + "\n");
+
+    return sequence(buttons.map(function(button) {
+      return function() {
+        return sequence([
+          function() {
+            return fritz.getDevice(button).then(function(device) {
+              console.log("[" + button + "] " + device.name);
+              console.log("[" + button + "] presence: " + device.present);
+              console.log("[" + button + "] productname: " + device.productname);
+
+              device.button.forEach(function(btn) {
+                console.log("[" + button + "] button name: " + btn.name);
+                lpMs = parseInt(btn.lastpressedtimestamp) * 1000;
+                console.log("[" + button + "] last pressed: " + btn.lastpressedtimestamp + (isNaN(lpMs) ? 'never' : ' (' + new Date(lpMs).toISOString() + ')'));
+              });
+            });           
+          },
+          function() {
+            return fritz.getBatteryCharge(button).then(function(level) {
+              console.log("[" + button + "] battery level: " + level + '%\n');
+            });
+          }
+        ]);
+      };
+    }));
+  });
+}
+
+// display temeratures of all devices with a temp sensor
+function temperatureSensors() {
+  return fritz.getTemperatureSensorList().then(function(sensors) {
+    console.log("sensors: " + sensors + "\n");
+
+    return sequence(sensors.map(function(sensor) {
+      return function() {
+        return sequence([
+          function() {
+            return fritz.getTemperature(sensor).then(function(temp) {
+              temp = isNaN(temp) ? '-' : temp + "°C";
+              console.log("[" + sensor + "] temp: " + temp);
+            });
+          }
+        ]);
+      };
+    }));
+  });
+}
+
 // show phone List
 function phoneList() {
   return fritz.getPhoneList().then(function(body) {
@@ -152,7 +205,7 @@ function phoneList() {
 function debug() {
   return fritz.getDeviceList().then(function(devices) {
     console.log("Raw devices\n");
-    console.log(devices);
+    console.log(JSON.stringify(devices, undefined, 2));
   });
 }
 
@@ -161,7 +214,7 @@ function debug() {
 const cmdOptionsDefinition = [
   { name: 'username', alias: 'u', type: String },
   { name: 'password', alias: 'p', type: String },
-  { name: 'types', alias: 't', type: String, multiple: true, description: 'switches|thermostats|bulbs|debug, default is all, multiple possible' },
+  { name: 'types', alias: 't', type: String, multiple: true, description: 'switches|thermostats|bulbs|buttons|temperaturesensors|debug, default is all, multiple possible' },
   { name: 'url', type: String },
   { name: 'help', alias: 'h', type: Boolean }
 ];
@@ -197,6 +250,21 @@ if (cmdOptions.types === undefined || cmdOptions.types.indexOf('thermostats') >=
 if (cmdOptions.types === undefined || cmdOptions.types.indexOf('bulbs') >= 0) {
   tasks.push(function() {
     return bulbs();
+  });
+}
+if (cmdOptions.types === undefined || cmdOptions.types.indexOf('buttons') >= 0) {
+  tasks.push(function() {
+    return buttons();
+  });
+}
+if (cmdOptions.types === undefined || cmdOptions.types.indexOf('temperaturesensors') >= 0) {
+  tasks.push(function() {
+    return temperatureSensors();
+  });
+}
+if (cmdOptions.types === undefined || cmdOptions.types.indexOf('temperaturesensors') >= 0) {
+  tasks.push(function() {
+    return phoneList();
   });
 }
 if (cmdOptions.types === undefined || cmdOptions.types.indexOf('debug') >= 0) {

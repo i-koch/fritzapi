@@ -138,6 +138,10 @@ Fritz.prototype = {
         return this.call(module.exports.getDevice, ain);
     },
 
+    getTemperatureSensorList: function() {
+        return this.call(module.exports.getTemperatureSensorList);
+    },
+    
     // multiple devices
     getTemperature: function(ain) {
         return this.call(module.exports.getTemperature, ain);
@@ -213,6 +217,12 @@ Fritz.prototype = {
     //     return this.call(module.exports.setHkrWindowOpen, ain, endtime);
     // },
 
+    // button related
+
+    getButtonList: function() {
+        return this.call(module.exports.getButtonList);
+    },
+
     // light related
 
     getBulbList: function() {
@@ -275,7 +285,7 @@ Fritz.prototype = {
     },
     
     getPhoneList: function() {
-        return executeCommand(this.sid, null, null, null, "/fon_num/foncalls_list.lua?csv=");
+        return this.call(module.exports.getPhoneList);
     },
 
 
@@ -497,7 +507,7 @@ module.exports.temp2api = temp2api;
 module.exports.MIN_TEMP = MIN_TEMP;
 module.exports.MAX_TEMP = MAX_TEMP;
 
-// functions bitmask
+// functions bitmask                     
 module.exports.FUNCTION_HANFUN              = 1;       // HAN-FUN device
 module.exports.FUNCTION_LIGHT               = 1 << 2;  // Bulb
 module.exports.FUNCTION_ALARM               = 1 << 4;  // Alarm Sensor
@@ -578,6 +588,7 @@ module.exports.getOSVersion = function(sid, options)
         return osVersion;
     });
 };
+
 
 // get template information (XML)
 module.exports.getTemplateListInfos  = function(sid, options)
@@ -686,6 +697,15 @@ module.exports.getPresence = function(sid, ain, options)
     });
 };
 
+// get a list of devices with a temperature sensor (outlets, thermostats and Dect440 button device)
+module.exports.getTemperatureSensorList = function(sid, options)
+{
+    return module.exports.getDeviceListFiltered(sid, {
+        functionbitmask: module.exports.FUNCTION_TEMPERATURESENSOR
+    }, options).map(function(device) {
+        return device.identifier;
+    });
+};
 
 /*
  * Switches
@@ -981,6 +1001,16 @@ module.exports.getWindowOpen = function(sid, ain, options)
         return device.hkr.windowopenactiv == '0' ? false : true;
     });
 }
+
+
+/*
+ * Phone list
+ */
+module.exports.getPhoneList = function(sid, options) {
+    return executeCommand(sid, null, null, options, "/fon_num/foncalls_list.lua?csv=").then(function(body) {
+        return body;    
+    });
+};
 
 
 /*
