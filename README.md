@@ -277,7 +277,7 @@ or a color bulb:
 
 ## AHA HTTP Interface Documentation
 
-http://avm.de/fileadmin/user_upload/Global/Service/Schnittstellen/AHA-HTTP-Interface.pdf
+https://fritz.support/resources/AHA-HTTP-Interface.pdf
 
 ## Acknowledgements
 
